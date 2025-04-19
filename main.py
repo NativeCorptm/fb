@@ -3,6 +3,7 @@ import time
 import telepot
 import threading
 import os
+import requests
 from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from flask import Flask, request
@@ -202,7 +203,18 @@ def webhook():
         bot.handle(json_data)
         return 'ok', 200
 
+# === KEEP-ALIVE ===
+def keep_alive():
+    while True:
+        try:
+            requests.get("https://sleepy-lauree-callindy855-913136b3.koyeb.app/")
+            print("Ping sent to keep app alive")
+        except Exception as e:
+            print(f"Ping failed: {e}")
+        time.sleep(3000)
+
 # === AVVIO ===
 if __name__ == '__main__':
+    threading.Thread(target=keep_alive, daemon=True).start()
     MessageLoop(bot, {'chat': handle_command, 'callback_query': on_callback}).run_as_thread()
-    app.run(host='0.0.0.0', port=5000)  # This runs the Flask app to listen on port 5000
+    app.run(host='0.0.0.0', port=5000)
