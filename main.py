@@ -5,12 +5,19 @@ import threading
 import os
 from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
+from flask import Flask, request
 
 # === CONFIG ===
 BOT_TOKEN = '7726236368:AAEGHLdJHvjNIi4tET-ZqtATEheGJOOxddo'
 DB_DIR = '/sdcard/bot/DB'
 loading_flags = {}
 cached_data = {}
+
+# === FLASK SETUP ===
+app = Flask(__name__)
+
+# === BOT SETUP ===
+bot = telepot.Bot(BOT_TOKEN)
 
 # === COMANDI ===
 def handle_command(msg):
@@ -183,9 +190,19 @@ def loading_animation(chat_id, message_id):
         i += 1
         time.sleep(0.5)
 
+# === FLASK ROUTES ===
+@app.route('/')
+def index():
+    return "Bot is running"
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    if request.method == 'POST':
+        json_data = request.get_json()
+        bot.handle(json_data)
+        return 'ok', 200
+
 # === AVVIO ===
-bot = telepot.Bot(BOT_TOKEN)
-MessageLoop(bot, {'chat': handle_command, 'callback_query': on_callback}).run_as_thread()
-print("Bot avviato.")
-while True:
-    time.sleep(10)
+if __name__ == '__main__':
+    MessageLoop(bot, {'chat': handle_command, 'callback_query': on_callback}).run_as_thread()
+    app.run(host='0.0.0.0', port=5000)  # This runs the Flask app to listen on port 5000
