@@ -1,1 +1,2 @@
 telepot
+Flask==2.2.3
